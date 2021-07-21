@@ -1,6 +1,7 @@
 import b58 from 'bs58check';
 import { AbstractHDElectrumWallet } from './abstract-hd-electrum-wallet';
 const bitcoin = require('bitcoinjs-lib');
+const TESTNET = bitcoin.networks.testnet;
 const HDNode = require('bip32');
 
 /**
@@ -12,7 +13,7 @@ export class HDSegwitP2SHWallet extends AbstractHDElectrumWallet {
   static type = 'HDsegwitP2SH';
   static typeReadable = 'HD SegWit (BIP49 P2SH)';
   static segwitType = 'p2sh(p2wpkh)';
-  static derivationPath = "m/49'/0'/0'";
+  static derivationPath = "m/49'/1'/0'";
 
   allowSend() {
     return true;
@@ -48,11 +49,11 @@ export class HDSegwitP2SHWallet extends AbstractHDElectrumWallet {
   _getWIFByIndex(internal, index) {
     if (!this.secret) return false;
     const seed = this._getSeed();
-    const root = bitcoin.bip32.fromSeed(seed);
-    const path = `m/49'/0'/0'/${internal ? 1 : 0}/${index}`;
+    const root = bitcoin.bip32.fromSeed(seed,TESTNET);
+    const path = `m/49'/1'/0'/${internal ? 1 : 0}/${index}`;
     const child = root.derivePath(path);
 
-    return bitcoin.ECPair.fromPrivateKey(child.privateKey).toWIF();
+    return bitcoin.ECPair.fromPrivateKey(child.privateKey, {network: TESTNET}).toWIF();
   }
 
   _getExternalAddressByIndex(index) {
@@ -61,7 +62,7 @@ export class HDSegwitP2SHWallet extends AbstractHDElectrumWallet {
 
     if (!this._node0) {
       const xpub = this.constructor._ypubToXpub(this.getXpub());
-      const hdNode = HDNode.fromBase58(xpub);
+      const hdNode = HDNode.fromBase58(xpub, TESTNET);
       this._node0 = hdNode.derive(0);
     }
     const address = this.constructor._nodeToP2shSegwitAddress(this._node0.derive(index));
@@ -75,7 +76,7 @@ export class HDSegwitP2SHWallet extends AbstractHDElectrumWallet {
 
     if (!this._node1) {
       const xpub = this.constructor._ypubToXpub(this.getXpub());
-      const hdNode = HDNode.fromBase58(xpub);
+      const hdNode = HDNode.fromBase58(xpub, TESTNET);
       this._node1 = hdNode.derive(1);
     }
     const address = this.constructor._nodeToP2shSegwitAddress(this._node1.derive(index));
@@ -95,16 +96,16 @@ export class HDSegwitP2SHWallet extends AbstractHDElectrumWallet {
     }
     // first, getting xpub
     const seed = this._getSeed();
-    const root = HDNode.fromSeed(seed);
+    const root = HDNode.fromSeed(seed, TESTNET);
 
-    const path = "m/49'/0'/0'";
+    const path = "m/49'/1'/0'";
     const child = root.derivePath(path).neutered();
     const xpub = child.toBase58();
 
     // bitcoinjs does not support ypub yet, so we just convert it from xpub
     let data = b58.decode(xpub);
     data = data.slice(4);
-    data = Buffer.concat([Buffer.from('049d7cb2', 'hex'), data]);
+    data = Buffer.concat([Buffer.from('044a5262', 'hex'), data]);
     this._xpub = b58.encode(data);
 
     return this._xpub;
@@ -113,8 +114,8 @@ export class HDSegwitP2SHWallet extends AbstractHDElectrumWallet {
   _addPsbtInput(psbt, input, sequence, masterFingerprintBuffer) {
     const pubkey = this._getPubkeyByAddress(input.address);
     const path = this._getDerivationPathByAddress(input.address, 49);
-    const p2wpkh = bitcoin.payments.p2wpkh({ pubkey });
-    const p2sh = bitcoin.payments.p2sh({ redeem: p2wpkh });
+    const p2wpkh = bitcoin.payments.p2wpkh({ pubkey, network: TESTNET });
+    const p2sh = bitcoin.payments.p2sh({ redeem: p2wpkh, network: TESTNET });
 
     psbt.addInput({
       hash: input.txid,
@@ -144,7 +145,8 @@ export class HDSegwitP2SHWallet extends AbstractHDElectrumWallet {
    */
   static _nodeToP2shSegwitAddress(hdNode) {
     const { address } = bitcoin.payments.p2sh({
-      redeem: bitcoin.payments.p2wpkh({ pubkey: hdNode.publicKey }),
+      redeem: bitcoin.payments.p2wpkh({ pubkey: hdNode.publicKey, network: TESTNET }),
+      network: TESTNET
     });
     return address;
   }

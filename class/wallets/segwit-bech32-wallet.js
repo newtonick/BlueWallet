@@ -1,5 +1,6 @@
 import { LegacyWallet } from './legacy-wallet';
 const bitcoin = require('bitcoinjs-lib');
+const TESTNET = bitcoin.networks.testnet;
 
 export class SegwitBech32Wallet extends LegacyWallet {
   static type = 'segwitBech32';
@@ -10,13 +11,14 @@ export class SegwitBech32Wallet extends LegacyWallet {
     if (this._address) return this._address;
     let address;
     try {
-      const keyPair = bitcoin.ECPair.fromWIF(this.secret);
+      const keyPair = bitcoin.ECPair.fromWIF(this.secret, TESTNET);
       if (!keyPair.compressed) {
         console.warn('only compressed public keys are good for segwit');
         return false;
       }
       address = bitcoin.payments.p2wpkh({
         pubkey: keyPair.publicKey,
+        network: TESTNET
       }).address;
     } catch (err) {
       return false;
@@ -31,7 +33,7 @@ export class SegwitBech32Wallet extends LegacyWallet {
       const pubKey = Buffer.from(witness, 'hex');
       return bitcoin.payments.p2wpkh({
         pubkey: pubKey,
-        network: bitcoin.networks.bitcoin,
+        network: TESTNET,
       }).address;
     } catch (_) {
       return false;
@@ -49,7 +51,7 @@ export class SegwitBech32Wallet extends LegacyWallet {
       const scriptPubKey2 = Buffer.from(scriptPubKey, 'hex');
       return bitcoin.payments.p2wpkh({
         output: scriptPubKey2,
-        network: bitcoin.networks.bitcoin,
+        network: TESTNET,
       }).address;
     } catch (_) {
       return false;
@@ -79,13 +81,13 @@ export class SegwitBech32Wallet extends LegacyWallet {
     inputs.forEach(input => {
       if (!skipSigning) {
         // skiping signing related stuff
-        keyPair = bitcoin.ECPair.fromWIF(this.secret); // secret is WIF
+        keyPair = bitcoin.ECPair.fromWIF(this.secret, TESTNET); // secret is WIF
       }
       values[c] = input.value;
       c++;
 
       const pubkey = keyPair.publicKey;
-      const p2wpkh = bitcoin.payments.p2wpkh({ pubkey });
+      const p2wpkh = bitcoin.payments.p2wpkh({ pubkey, network: TESTNET });
 
       psbt.addInput({
         hash: input.txid,

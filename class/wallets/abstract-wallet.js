@@ -29,7 +29,7 @@ export class AbstractWallet {
     this.utxo = [];
     this._lastTxFetch = 0;
     this._lastBalanceFetch = 0;
-    this.preferredBalanceUnit = BitcoinUnit.BTC;
+    this.preferredBalanceUnit = BitcoinUnit.SATS;
     this.chain = Chain.ONCHAIN;
     this.hideBalance = false;
     this.userHasSavedExport = false;
@@ -94,10 +94,10 @@ export class AbstractWallet {
   getPreferredBalanceUnit() {
     for (const value of Object.values(BitcoinUnit)) {
       if (value === this.preferredBalanceUnit) {
-        return this.preferredBalanceUnit;
+        return BitcoinUnit.SATS; //this.preferredBalanceUnit;
       }
     }
-    return BitcoinUnit.BTC;
+    return BitcoinUnit.SATS;
   }
 
   allowReceive() {
@@ -166,7 +166,7 @@ export class AbstractWallet {
   setSecret(newSecret) {
     this.secret = newSecret.trim().replace('bitcoin:', '').replace('BITCOIN:', '');
 
-    if (this.secret.startsWith('BC1')) this.secret = this.secret.toLowerCase();
+    if (this.secret.startsWith('TB1')) this.secret = this.secret.toLowerCase();
 
     // [fingerprint/derivation]zpub
     const re = /\[([^\]]+)\](.*)/;
@@ -294,9 +294,10 @@ export class AbstractWallet {
    * @returns {String} xpub
    */
   static _zpubToXpub(zpub) {
+    console.log("Test Here _zpub: " + zpub)
     let data = b58.decode(zpub);
     data = data.slice(4);
-    data = Buffer.concat([Buffer.from('0488b21e', 'hex'), data]);
+    data = Buffer.concat([Buffer.from('043587cf', 'hex'), data]);
 
     return b58.encode(data);
   }
@@ -310,7 +311,7 @@ export class AbstractWallet {
     let data = b58.decode(ypub);
     if (data.readUInt32BE() !== 0x049d7cb2) throw new Error('Not a valid ypub extended key!');
     data = data.slice(4);
-    data = Buffer.concat([Buffer.from('0488b21e', 'hex'), data]);
+    data = Buffer.concat([Buffer.from('043587cf', 'hex'), data]);
 
     return b58.encode(data);
   }

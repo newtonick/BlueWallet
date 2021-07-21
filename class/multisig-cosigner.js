@@ -1,5 +1,7 @@
 import b58 from 'bs58check';
 const HDNode = require('bip32');
+const bitcoin = require('bitcoinjs-lib');
+const TESTNET = bitcoin.networks.testnet;
 
 export class MultisigCosigner {
   constructor(data) {
@@ -11,21 +13,21 @@ export class MultisigCosigner {
     this._cosigners = [];
 
     // is it plain simple Zpub/Ypub/xpub?
-    if (data.startsWith('Zpub') && MultisigCosigner.isXpubValid(data)) {
+    if (data.startsWith('Vpub') && MultisigCosigner.isXpubValid(data)) {
       this._fp = '00000000';
       this._xpub = data;
-      this._path = "m/48'/0'/0'/2'";
+      this._path = "m/48'/1'/0'/2'";
       this._valid = true;
       this._cosigners = [true];
       return;
-    } else if (data.startsWith('Ypub') && MultisigCosigner.isXpubValid(data)) {
+    } else if (data.startsWith('Upub') && MultisigCosigner.isXpubValid(data)) {
       this._fp = '00000000';
       this._xpub = data;
-      this._path = "m/48'/0'/0'/1'";
+      this._path = "m/48'/1'/0'/1'";
       this._valid = true;
       this._cosigners = [true];
       return;
-    } else if (data.startsWith('xpub') && MultisigCosigner.isXpubValid(data)) {
+    } else if (data.startsWith('tpub') && MultisigCosigner.isXpubValid(data)) {
       this._fp = '00000000';
       this._xpub = data;
       this._path = "m/45'";
@@ -112,7 +114,7 @@ export class MultisigCosigner {
   static _zpubToXpub(zpub) {
     let data = b58.decode(zpub);
     data = data.slice(4);
-    data = Buffer.concat([Buffer.from('0488b21e', 'hex'), data]);
+    data = Buffer.concat([Buffer.from('043587cf', 'hex'), data]);
 
     return b58.encode(data);
   }
@@ -122,7 +124,7 @@ export class MultisigCosigner {
 
     try {
       xpub = MultisigCosigner._zpubToXpub(key);
-      HDNode.fromBase58(xpub);
+      HDNode.fromBase58(xpub, TESTNET);
       return true;
     } catch (_) {}
 

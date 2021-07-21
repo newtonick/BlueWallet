@@ -124,7 +124,7 @@ function WalletImport() {
       const decryptedKey = await bip38.decrypt(importText, password);
 
       if (decryptedKey) {
-        importText = wif.encode(0x80, decryptedKey.privateKey, decryptedKey.compressed);
+        importText = wif.encode(0xef, decryptedKey.privateKey, decryptedKey.compressed);
       }
     }
 
@@ -147,9 +147,6 @@ function WalletImport() {
         const split = importText.split('@');
         lnd.setBaseURI(split[1]);
         lnd.setSecret(split[0]);
-      } else {
-        lnd.setBaseURI(LightningCustodianWallet.defaultBaseUri);
-        lnd.setSecret(importText);
       }
       lnd.init();
       await lnd.authorize();

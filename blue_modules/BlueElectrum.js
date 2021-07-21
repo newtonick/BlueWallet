@@ -6,6 +6,7 @@ import DefaultPreference from 'react-native-default-preference';
 import RNWidgetCenter from 'react-native-widget-center';
 import loc from '../loc';
 const bitcoin = require('bitcoinjs-lib');
+const TESTNET = bitcoin.networks.testnet;
 const ElectrumClient = require('electrum-client');
 const reverse = require('buffer-reverse');
 const BigNumber = require('bignumber.js');
@@ -45,7 +46,7 @@ async function _getRealm() {
 }
 
 const storageKey = 'ELECTRUM_PEERS';
-const defaultPeer = { host: 'electrum1.bluewallet.io', ssl: '443' };
+const defaultPeer = { host: 'testnet.hsmiths.com', ssl: '53012' };
 const hardcodedPeers = [
   // { host: 'noveltybobble.coinjoined.com', tcp: '50001' }, // down
   // { host: 'electrum.be', tcp: '50001' },
@@ -55,9 +56,10 @@ const hardcodedPeers = [
   // { host: 'Bitkoins.nl', tcp: '50001' }, // down
   // { host: 'fullnode.coinkite.com', tcp: '50001' },
   // { host: 'preperfect.eleCTruMioUS.com', tcp: '50001' }, // down
-  { host: 'electrum1.bluewallet.io', ssl: '443' },
-  { host: 'electrum2.bluewallet.io', ssl: '443' },
-  { host: 'electrum3.bluewallet.io', ssl: '443' },
+  // { host: 'electrum1.bluewallet.io', ssl: '443' },
+  // { host: 'electrum2.bluewallet.io', ssl: '443' },
+  //{ host: '192.168.1.9', tcp: '50001' },
+  { host: 'testnet.hsmiths.com', ssl: '53012'}
 ];
 
 /** @type {ElectrumClient} */
@@ -284,7 +286,7 @@ async function getRandomDynamicPeer() {
  */
 module.exports.getBalanceByAddress = async function (address) {
   if (!mainClient) throw new Error('Electrum client is not connected');
-  const script = bitcoin.address.toOutputScript(address);
+  const script = bitcoin.address.toOutputScript(address, TESTNET);
   const hash = bitcoin.crypto.sha256(script);
   const reversedHash = Buffer.from(reverse(hash));
   const balance = await mainClient.blockchainScripthash_getBalance(reversedHash.toString('hex'));
@@ -313,7 +315,7 @@ module.exports.getSecondsSinceLastRequest = function () {
  */
 module.exports.getTransactionsByAddress = async function (address) {
   if (!mainClient) throw new Error('Electrum client is not connected');
-  const script = bitcoin.address.toOutputScript(address);
+  const script = bitcoin.address.toOutputScript(address, TESTNET);
   const hash = bitcoin.crypto.sha256(script);
   const reversedHash = Buffer.from(reverse(hash));
   const history = await mainClient.blockchainScripthash_getHistory(reversedHash.toString('hex'));
@@ -383,7 +385,7 @@ module.exports.multiGetBalanceByAddress = async function (addresses, batchsize) 
     const scripthashes = [];
     const scripthash2addr = {};
     for (const addr of chunk) {
-      const script = bitcoin.address.toOutputScript(addr);
+      const script = bitcoin.address.toOutputScript(addr, TESTNET);
       const hash = bitcoin.crypto.sha256(script);
       let reversedHash = Buffer.from(reverse(hash));
       reversedHash = reversedHash.toString('hex');
@@ -429,7 +431,7 @@ module.exports.multiGetUtxoByAddress = async function (addresses, batchsize) {
     const scripthashes = [];
     const scripthash2addr = {};
     for (const addr of chunk) {
-      const script = bitcoin.address.toOutputScript(addr);
+      const script = bitcoin.address.toOutputScript(addr, TESTNET);
       const hash = bitcoin.crypto.sha256(script);
       let reversedHash = Buffer.from(reverse(hash));
       reversedHash = reversedHash.toString('hex');
@@ -472,7 +474,7 @@ module.exports.multiGetHistoryByAddress = async function (addresses, batchsize) 
     const scripthashes = [];
     const scripthash2addr = {};
     for (const addr of chunk) {
-      const script = bitcoin.address.toOutputScript(addr);
+      const script = bitcoin.address.toOutputScript(addr, TESTNET);
       const hash = bitcoin.crypto.sha256(script);
       let reversedHash = Buffer.from(reverse(hash));
       reversedHash = reversedHash.toString('hex');
@@ -732,7 +734,7 @@ module.exports.estimateFees = async function () {
   // recalculating medium and slow fees using bitcoincore estimations only like relative weights:
   // (minimum 1 sat, just for any case)
   const medium = Math.max(1, Math.round((fast * _medium) / _fast));
-  const slow = Math.max(1, Math.round((fast * _slow) / _fast));
+  const slow = 1.0; //Math.max(1, Math.round((fast * _slow) / _fast));
   return { fast, medium, slow };
 };
 

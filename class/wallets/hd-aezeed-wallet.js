@@ -1,6 +1,7 @@
 import { AbstractHDElectrumWallet } from './abstract-hd-electrum-wallet';
 import b58 from 'bs58check';
 const bitcoin = require('bitcoinjs-lib');
+const TESTNET = bitcoin.networks.testnet;
 const { CipherSeed } = require('aezeed');
 
 /**
@@ -17,7 +18,7 @@ export class HDAezeedWallet extends AbstractHDElectrumWallet {
   static type = 'HDAezeedWallet';
   static typeReadable = 'HD Aezeed';
   static segwitType = 'p2wpkh';
-  static derivationPath = "m/84'/0'/0'";
+  static derivationPath = "m/84'/1'/0'";
 
   setSecret(newSecret) {
     this.secret = newSecret.trim();
@@ -36,9 +37,9 @@ export class HDAezeedWallet extends AbstractHDElectrumWallet {
 
   getXpub() {
     // first, getting xpub
-    const root = bitcoin.bip32.fromSeed(this._getEntropyCached());
+    const root = bitcoin.bip32.fromSeed(this._getEntropyCached(), TESTNET);
 
-    const path = "m/84'/0'/0'";
+    const path = "m/84'/1'/0'";
     const child = root.derivePath(path).neutered();
     const xpub = child.toBase58();
 
@@ -82,14 +83,14 @@ export class HDAezeedWallet extends AbstractHDElectrumWallet {
   }
 
   _getNode0() {
-    const root = bitcoin.bip32.fromSeed(this._getEntropyCached());
-    const node = root.derivePath("m/84'/0'/0'");
+    const root = bitcoin.bip32.fromSeed(this._getEntropyCached(), TESTNET);
+    const node = root.derivePath("m/84'/1'/0'");
     return node.derive(0);
   }
 
   _getNode1() {
-    const root = bitcoin.bip32.fromSeed(this._getEntropyCached());
-    const node = root.derivePath("m/84'/0'/0'");
+    const root = bitcoin.bip32.fromSeed(this._getEntropyCached(), TESTNET);
+    const node = root.derivePath("m/84'/1'/0'");
     return node.derive(1);
   }
 
@@ -121,8 +122,8 @@ export class HDAezeedWallet extends AbstractHDElectrumWallet {
 
   _getWIFByIndex(internal, index) {
     if (!this.secret) return false;
-    const root = bitcoin.bip32.fromSeed(this._getEntropyCached());
-    const path = `m/84'/0'/0'/${internal ? 1 : 0}/${index}`;
+    const root = bitcoin.bip32.fromSeed(this._getEntropyCached(), TESTNET);
+    const path = `m/84'/1'/0'/${internal ? 1 : 0}/${index}`;
     const child = root.derivePath(path);
 
     return child.toWIF();
@@ -149,7 +150,7 @@ export class HDAezeedWallet extends AbstractHDElectrumWallet {
   }
 
   getIdentityPubkey() {
-    const root = bitcoin.bip32.fromSeed(this._getEntropyCached());
+    const root = bitcoin.bip32.fromSeed(this._getEntropyCached(), TESTNET);
     const node = root.derivePath("m/1017'/0'/6'/0/0");
 
     return node.publicKey.toString('hex');

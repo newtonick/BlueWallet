@@ -16,6 +16,7 @@ const createHash = require('create-hash');
 const fs = require('../../blue_modules/fs');
 const Base43 = require('../../blue_modules/base43');
 const bitcoin = require('bitcoinjs-lib');
+const TESTNET = bitcoin.networks.testnet;
 let decoder = false;
 
 const styles = StyleSheet.create({

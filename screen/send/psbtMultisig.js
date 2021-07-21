@@ -10,6 +10,7 @@ import loc from '../../loc';
 import { BitcoinUnit } from '../../models/bitcoinUnits';
 import { BlueStorageContext } from '../../blue_modules/storage-context';
 const bitcoin = require('bitcoinjs-lib');
+const TESTNET = bitcoin.networks.testnet;
 const BigNumber = require('bignumber.js');
 const currency = require('../../blue_modules/currency');
 
@@ -25,7 +26,7 @@ const PsbtMultisig = () => {
   const { walletID, psbtBase64, memo, receivedPSBTBase64 } = useRoute().params;
   /** @type MultisigHDWallet */
   const wallet = wallets.find(w => w.getID() === walletID);
-  const [psbt, setPsbt] = useState(bitcoin.Psbt.fromBase64(psbtBase64));
+  const [psbt, setPsbt] = useState(bitcoin.Psbt.fromBase64(psbtBase64, {network: TESTNET}));
   const data = new Array(wallet.getM());
   const stylesHook = StyleSheet.create({
     root: {
@@ -157,7 +158,7 @@ const PsbtMultisig = () => {
   }, [receivedPSBTBase64]);
 
   const _combinePSBT = () => {
-    const receivedPSBT = bitcoin.Psbt.fromBase64(receivedPSBTBase64);
+    const receivedPSBT = bitcoin.Psbt.fromBase64(receivedPSBTBase64, {network: TESTNET});
     try {
       const newPsbt = psbt.combine(receivedPSBT);
       setPsbt(newPsbt);

@@ -4,9 +4,9 @@ import { getVersion, getSystemName, getUniqueId } from 'react-native-device-info
 import { Platform } from 'react-native';
 const BlueApp = require('../BlueApp');
 
-if (process.env.NODE_ENV !== 'development') {
+if (false) {
   Sentry.init({
-    dsn: 'https://23377936131848ca8003448a893cb622@sentry.io/1295736',
+    dsn: false,
   });
   Sentry.setUser({ id: getUniqueId() });
 }

@@ -1,103 +1,103 @@
 {
   "images" : [
     {
-      "filename" : "BlueWallet-20@2x.png",
+      "filename" : "iPhone notification iOS 7,12@2x.png",
       "idiom" : "iphone",
       "scale" : "2x",
       "size" : "20x20"
     },
     {
-      "filename" : "BlueWallet-20@3x.png",
+      "filename" : "iPhone notification iOS 7,12@3x.png",
       "idiom" : "iphone",
       "scale" : "3x",
       "size" : "20x20"
     },
     {
-      "filename" : "BlueWallet-29@2x.png",
+      "filename" : "iPhone settings iOS 7,12@2x.png",
       "idiom" : "iphone",
       "scale" : "2x",
       "size" : "29x29"
     },
     {
-      "filename" : "BlueWallet-29@3x.png",
+      "filename" : "iPhone settings iOS 7,12@3x.png",
       "idiom" : "iphone",
       "scale" : "3x",
       "size" : "29x29"
     },
     {
-      "filename" : "BlueWallet-40@2x.png",
+      "filename" : "iPhone Spotlight iOS 7,12@2x.png",
       "idiom" : "iphone",
       "scale" : "2x",
       "size" : "40x40"
     },
     {
-      "filename" : "BlueWallet-40@3x.png",
+      "filename" : "iPhone Spotlight iOS 7,12@3x.png",
       "idiom" : "iphone",
       "scale" : "3x",
       "size" : "40x40"
     },
     {
-      "filename" : "BlueWallet-60@2x.png",
+      "filename" : "iPhone App Icon iOS 7,12@2x.png",
       "idiom" : "iphone",
       "scale" : "2x",
       "size" : "60x60"
     },
     {
-      "filename" : "BlueWallet-60@3x.png",
+      "filename" : "iPhone App Icon iOS 7,12@3x.png",
       "idiom" : "iphone",
       "scale" : "3x",
       "size" : "60x60"
     },
     {
-      "filename" : "BlueWallet-20.png",
+      "filename" : "iPad notification iOS 7,12.png",
       "idiom" : "ipad",
       "scale" : "1x",
       "size" : "20x20"
     },
     {
-      "filename" : "BlueWallet-20@2x.png",
+      "filename" : "iPad notification iOS 7,12@2x.png",
       "idiom" : "ipad",
       "scale" : "2x",
       "size" : "20x20"
     },
     {
-      "filename" : "BlueWallet-29.png",
+      "filename" : "iPad Settings.png",
       "idiom" : "ipad",
       "scale" : "1x",
       "size" : "29x29"
     },
     {
-      "filename" : "BlueWallet-29@2x.png",
+      "filename" : "iPad Settings@2x.png",
       "idiom" : "ipad",
       "scale" : "2x",
       "size" : "29x29"
     },
     {
-      "filename" : "BlueWallet-40.png",
+      "filename" : "iPad Spotlight iOS 7,12.png",
       "idiom" : "ipad",
       "scale" : "1x",
       "size" : "40x40"
     },
     {
-      "filename" : "BlueWallet-40@2x.png",
+      "filename" : "iPad Spotlight iOS 7,12@2x.png",
       "idiom" : "ipad",
       "scale" : "2x",
       "size" : "40x40"
     },
     {
-      "filename" : "BlueWallet-76.png",
+      "filename" : "iPad App Icon iOS 7,12.png",
       "idiom" : "ipad",
       "scale" : "1x",
       "size" : "76x76"
     },
     {
-      "filename" : "BlueWallet-76@2x.png",
+      "filename" : "iPad App Icon iOS 7,12@2x.png",
       "idiom" : "ipad",
       "scale" : "2x",
       "size" : "76x76"
     },
     {
-      "filename" : "BlueWallet-83.5@2x.png",
+      "filename" : "iPad Pro Icon iOS 9,12@2x.png",
       "idiom" : "ipad",
       "scale" : "2x",
       "size" : "83.5x83.5"

@@ -1,5 +1,6 @@
 import { LegacyWallet } from './legacy-wallet';
 const bitcoin = require('bitcoinjs-lib');
+const TESTNET = bitcoin.networks.testnet;
 
 /**
  * Creates Segwit P2SH Bitcoin address
@@ -8,7 +9,7 @@ const bitcoin = require('bitcoinjs-lib');
  * @returns {String}
  */
 function pubkeyToP2shSegwitAddress(pubkey, network) {
-  network = network || bitcoin.networks.bitcoin;
+  network = network || TESTNET;
   const { address } = bitcoin.payments.p2sh({
     redeem: bitcoin.payments.p2wpkh({ pubkey, network }),
     network,
@@ -41,7 +42,7 @@ export class SegwitP2SHWallet extends LegacyWallet {
       const scriptPubKey2 = Buffer.from(scriptPubKey, 'hex');
       return bitcoin.payments.p2sh({
         output: scriptPubKey2,
-        network: bitcoin.networks.bitcoin,
+        network: TESTNET,
       }).address;
     } catch (_) {
       return false;
@@ -52,7 +53,7 @@ export class SegwitP2SHWallet extends LegacyWallet {
     if (this._address) return this._address;
     let address;
     try {
-      const keyPair = bitcoin.ECPair.fromWIF(this.secret);
+      const keyPair = bitcoin.ECPair.fromWIF(this.secret, TESTNET);
       const pubKey = keyPair.publicKey;
       if (!keyPair.compressed) {
         console.warn('only compressed public keys are good for segwit');
@@ -90,14 +91,14 @@ export class SegwitP2SHWallet extends LegacyWallet {
     inputs.forEach(input => {
       if (!skipSigning) {
         // skiping signing related stuff
-        keyPair = bitcoin.ECPair.fromWIF(this.secret); // secret is WIF
+        keyPair = bitcoin.ECPair.fromWIF(this.secret, TESTNET); // secret is WIF
       }
       values[c] = input.value;
       c++;
 
       const pubkey = keyPair.publicKey;
-      const p2wpkh = bitcoin.payments.p2wpkh({ pubkey });
-      const p2sh = bitcoin.payments.p2sh({ redeem: p2wpkh });
+      const p2wpkh = bitcoin.payments.p2wpkh({ pubkey, network: TESTNET });
+      const p2sh = bitcoin.payments.p2sh({ redeem: p2wpkh, network: TESTNET });
 
       psbt.addInput({
         hash: input.txid,

@@ -92,7 +92,9 @@ function satoshiToLocalCurrency(satoshi) {
     return '...';
   }
 
+  //let b = new BigNumber(satoshi).dividedBy(100000000).multipliedBy(5.0);
   let b = new BigNumber(satoshi).dividedBy(100000000).multipliedBy(exchangeRates['BTC_' + preferredFiatCurrency.endPointKey]);
+  //let b = new BigNumber(0); // no curreny value for testnet
 
   if (b.isGreaterThanOrEqualTo(0.005) || b.isLessThanOrEqualTo(-0.005)) {
     b = b.toFixed(2);

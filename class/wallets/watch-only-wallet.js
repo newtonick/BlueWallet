@@ -4,6 +4,7 @@ import { HDLegacyP2PKHWallet } from './hd-legacy-p2pkh-wallet';
 import { HDSegwitBech32Wallet } from './hd-segwit-bech32-wallet';
 
 const bitcoin = require('bitcoinjs-lib');
+const TESTNET = bitcoin.networks.testnet;
 const HDNode = require('bip32');
 
 export class WatchOnlyWallet extends LegacyWallet {
@@ -49,10 +50,10 @@ export class WatchOnlyWallet extends LegacyWallet {
   }
 
   valid() {
-    if (this.secret.startsWith('xpub') || this.secret.startsWith('ypub') || this.secret.startsWith('zpub')) return this.isXpubValid();
+    if (this.secret.startsWith('tpub') || this.secret.startsWith('upub') || this.secret.startsWith('vpub')) return this.isXpubValid();
 
     try {
-      bitcoin.address.toOutputScript(this.getAddress());
+      bitcoin.address.toOutputScript(this.getAddress(), TESTNET);
       return true;
     } catch (_) {
       return false;
@@ -68,9 +69,9 @@ export class WatchOnlyWallet extends LegacyWallet {
    */
   init() {
     let hdWalletInstance;
-    if (this.secret.startsWith('xpub')) hdWalletInstance = new HDLegacyP2PKHWallet();
-    else if (this.secret.startsWith('ypub')) hdWalletInstance = new HDSegwitP2SHWallet();
-    else if (this.secret.startsWith('zpub')) hdWalletInstance = new HDSegwitBech32Wallet();
+    if (this.secret.startsWith('tpub')) hdWalletInstance = new HDLegacyP2PKHWallet();
+    else if (this.secret.startsWith('upub')) hdWalletInstance = new HDSegwitP2SHWallet();
+    else if (this.secret.startsWith('vpub')) hdWalletInstance = new HDSegwitBech32Wallet();
     else return this;
     hdWalletInstance._xpub = this.secret;
     if (this._hdWalletInstance) {
@@ -106,7 +107,7 @@ export class WatchOnlyWallet extends LegacyWallet {
   }
 
   async fetchBalance() {
-    if (this.secret.startsWith('xpub') || this.secret.startsWith('ypub') || this.secret.startsWith('zpub')) {
+    if (this.secret.startsWith('tpub') || this.secret.startsWith('upub') || this.secret.startsWith('vpub')) {
       if (!this._hdWalletInstance) this.init();
       return this._hdWalletInstance.fetchBalance();
     } else {
@@ -116,7 +117,7 @@ export class WatchOnlyWallet extends LegacyWallet {
   }
 
   async fetchTransactions() {
-    if (this.secret.startsWith('xpub') || this.secret.startsWith('ypub') || this.secret.startsWith('zpub')) {
+    if (this.secret.startsWith('tpub') || this.secret.startsWith('upub') || this.secret.startsWith('vpub')) {
       if (!this._hdWalletInstance) this.init();
       return this._hdWalletInstance.fetchTransactions();
     } else {
@@ -212,7 +213,7 @@ export class WatchOnlyWallet extends LegacyWallet {
   }
 
   isHd() {
-    return this.secret.startsWith('xpub') || this.secret.startsWith('ypub') || this.secret.startsWith('zpub');
+    return this.secret.startsWith('tpub') || this.secret.startsWith('upub') || this.secret.startsWith('vpub');
   }
 
   weOwnAddress(address) {
@@ -221,7 +222,7 @@ export class WatchOnlyWallet extends LegacyWallet {
       throw new Error('Not initialized');
     }
 
-    if (address && address.startsWith('BC1')) address = address.toLowerCase();
+    if (address && address.startsWith('TB1')) address = address.toLowerCase();
 
     return this.getAddress() === address;
   }
@@ -231,7 +232,7 @@ export class WatchOnlyWallet extends LegacyWallet {
   }
 
   allowMasterFingerprint() {
-    return this.getSecret().startsWith('zpub');
+    return this.getSecret().startsWith('vpub');
   }
 
   useWithHardwareWalletEnabled() {
@@ -254,15 +255,15 @@ export class WatchOnlyWallet extends LegacyWallet {
     let xpub;
 
     try {
-      if (this.secret.startsWith('zpub')) {
+      if (this.secret.startsWith('vpub')) {
         xpub = this.constructor._zpubToXpub(this.secret);
-      } else if (this.secret.startsWith('ypub')) {
+      } else if (this.secret.startsWith('upub')) {
         xpub = this.constructor._ypubToXpub(this.secret);
       } else {
         xpub = this.secret;
       }
 
-      const hdNode = HDNode.fromBase58(xpub);
+      const hdNode = HDNode.fromBase58(xpub, TESTNET);
       hdNode.derive(0);
       return true;
     } catch (_) {}

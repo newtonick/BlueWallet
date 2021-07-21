@@ -21,6 +21,7 @@ const BlueElectrum = require('../../blue_modules/BlueElectrum');
 const Bignumber = require('bignumber.js');
 const bitcoin = require('bitcoinjs-lib');
 const torrific = require('../../blue_modules/torrific');
+const TESTNET = bitcoin.networks.testnet;
 
 export default class Confirm extends Component {
   static contextType = BlueStorageContext;
@@ -57,7 +58,7 @@ export default class Confirm extends Component {
    * @return {string}
    */
   getPaymentScript() {
-    return bitcoin.address.toOutputScript(this.state.recipients[0].address);
+    return bitcoin.address.toOutputScript(this.state.recipients[0].address, TESTNET);
   }
 
   send() {
@@ -86,7 +87,7 @@ export default class Confirm extends Component {
                 });
                 console.warn('got torResponse.body');
                 if (!torResponse.body) throw new Error('TOR failure, got ' + JSON.stringify(torResponse));
-                return Psbt.fromBase64(torResponse.body);
+                return Psbt.fromBase64(torResponse.body, {network: TESTNET});
               },
             };
             payjoinClient = new PayjoinClient({

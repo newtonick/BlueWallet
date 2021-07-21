@@ -10,6 +10,7 @@ import { DynamicQRCode } from '../../components/DynamicQRCode';
 import { SquareButton } from '../../components/SquareButton';
 import loc from '../../loc';
 const bitcoin = require('bitcoinjs-lib');
+const TESTNET = bitcoin.networks.testnet;
 const fs = require('../../blue_modules/fs');
 
 const isDesktop = getSystemName() === 'Mac OS X';
@@ -21,7 +22,7 @@ const PsbtMultisigQRCode = () => {
   const { psbtBase64, isShowOpenScanner } = useRoute().params;
   const [isLoading, setIsLoading] = useState(false);
 
-  const psbt = bitcoin.Psbt.fromBase64(psbtBase64);
+  const psbt = bitcoin.Psbt.fromBase64(psbtBase64, {network: TESTNET});
   const stylesHook = StyleSheet.create({
     root: {
       backgroundColor: colors.elevated,

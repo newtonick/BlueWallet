@@ -45,6 +45,7 @@ const prompt = require('../../blue_modules/prompt');
 const fs = require('../../blue_modules/fs');
 const scanqr = require('../../helpers/scan-qr');
 const btcAddressRx = /^[a-zA-Z0-9]{26,35}$/;
+const TESTNET = bitcoin.networks.testnet;
 
 const SendDetails = () => {
   const { wallets, setSelectedWallet, sleep, txMetadata, saveToDisk } = useContext(BlueStorageContext);
@@ -242,7 +243,7 @@ const SendDetails = () => {
       // replace wrong addresses with dump
       targets = targets.map(t => {
         try {
-          bitcoin.address.toOutputScript(t.address);
+          bitcoin.address.toOutputScript(t.address, TESTNET);
           return t;
         } catch (e) {
           return { ...t, address: '36JxaUrpDzkEerkTf1FzwHNE1Hb7cCjgJV' };
@@ -361,7 +362,7 @@ const SendDetails = () => {
     }
 
     console.log('options', options);
-    if (btcAddressRx.test(address) || address.startsWith('bc1') || address.startsWith('BC1')) {
+    if (btcAddressRx.test(address) || address.startsWith('tb1') || address.startsWith('TB1')) {
       setAddresses(addresses => {
         addresses[scrollIndex.current].address = address;
         addresses[scrollIndex.current].amount = options.amount;
@@ -415,7 +416,7 @@ const SendDetails = () => {
 
       if (!error) {
         try {
-          bitcoin.address.toOutputScript(transaction.address);
+          bitcoin.address.toOutputScript(transaction.address, TESTNET);
         } catch (err) {
           console.log('validation error');
           console.log(err);
@@ -561,7 +562,7 @@ const SendDetails = () => {
 
       // we construct PSBT object and pass to next screen
       // so user can do smth with it:
-      const psbt = bitcoin.Psbt.fromBase64(ret.data);
+      const psbt = bitcoin.Psbt.fromBase64(ret.data, {network: TESTNET});
       navigation.navigate('PsbtWithHardwareWallet', {
         memo,
         fromWallet: wallet,
@@ -597,7 +598,7 @@ const SendDetails = () => {
         // we assume that transaction is already signed, so all we have to do is get txhex and pass it to next screen
         // so user can broadcast:
         const file = await RNFS.readFile(res.uri, 'ascii');
-        const psbt = bitcoin.Psbt.fromBase64(file);
+        const psbt = bitcoin.Psbt.fromBase64(file, {network: TESTNET});
         const txhex = psbt.extractTransaction().toHex();
         navigation.navigate('PsbtWithHardwareWallet', { memo, fromWallet: wallet, txhex });
         setIsLoading(false);
@@ -609,7 +610,7 @@ const SendDetails = () => {
         // looks like transaction is UNsigned, so we construct PSBT object and pass to next screen
         // so user can do smth with it:
         const file = await RNFS.readFile(res.uri, 'ascii');
-        const psbt = bitcoin.Psbt.fromBase64(file);
+        const psbt = bitcoin.Psbt.fromBase64(file, {network: TESTNET});
         navigation.navigate('PsbtWithHardwareWallet', { memo, fromWallet: wallet, psbt });
         setIsLoading(false);
         setOptionsVisible(false);
@@ -658,7 +659,7 @@ const SendDetails = () => {
     try {
       const base64 = base64arg || (await fs.openSignedTransaction());
       if (!base64) return;
-      const psbt = bitcoin.Psbt.fromBase64(base64); // if it doesnt throw - all good, its valid
+      const psbt = bitcoin.Psbt.fromBase64(base64, {network: TESTNET}); // if it doesnt throw - all good, its valid
 
       if (wallet.howManySignaturesCanWeMake() > 0 && (await askCosignThisTransaction())) {
         hideOptions();
@@ -752,7 +753,7 @@ const SendDetails = () => {
     let tx;
     let psbt;
     try {
-      psbt = bitcoin.Psbt.fromBase64(scannedData);
+      psbt = bitcoin.Psbt.fromBase64(scannedData, {network: TESTNET});
       tx = wallet.cosignPsbt(psbt).tx;
     } catch (e) {
       Alert.alert(loc.errors.error, e.message);
@@ -1220,7 +1221,7 @@ const SendDetails = () => {
 
   // if utxo is limited we use it to calculate available balance
   const balance = utxo ? utxo.reduce((prev, curr) => prev + curr.value, 0) : wallet.getBalance();
-  const allBalance = formatBalanceWithoutSuffix(balance, BitcoinUnit.BTC, true);
+  const allBalance = formatBalanceWithoutSuffix(balance, BitcoinUnit.SATS, true);
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>

@@ -4,6 +4,7 @@ import { randomBytes } from '../rng';
 import { AbstractWallet } from './abstract-wallet';
 import { HDSegwitBech32Wallet } from '..';
 const bitcoin = require('bitcoinjs-lib');
+const TESTNET = bitcoin.networks.testnet;
 const BlueElectrum = require('../../blue_modules/BlueElectrum');
 const coinSelect = require('coinselect');
 const coinSelectSplit = require('coinselect/split');
@@ -56,7 +57,7 @@ export class LegacyWallet extends AbstractWallet {
       const random = await randomBytes(user.length < 32 ? 32 - user.length : 0);
       const buf = Buffer.concat([user, random], 32);
       try {
-        this.secret = bitcoin.ECPair.fromPrivateKey(buf).toWIF();
+        this.secret = bitcoin.ECPair.fromPrivateKey(buf, {network: TESTNET}).toWIF();
         return;
       } catch (e) {
         if (i === 5) throw e;
@@ -72,7 +73,7 @@ export class LegacyWallet extends AbstractWallet {
     if (this._address) return this._address;
     let address;
     try {
-      const keyPair = bitcoin.ECPair.fromWIF(this.secret);
+      const keyPair = bitcoin.ECPair.fromWIF(this.secret, TESTNET);
       address = bitcoin.payments.p2pkh({
         pubkey: keyPair.publicKey,
       }).address;
@@ -376,7 +377,7 @@ export class LegacyWallet extends AbstractWallet {
     inputs.forEach(input => {
       if (!skipSigning) {
         // skiping signing related stuff
-        keyPair = bitcoin.ECPair.fromWIF(this.secret); // secret is WIF
+        keyPair = bitcoin.ECPair.fromWIF(this.secret, TESTNET); // secret is WIF
       }
       values[c] = input.value;
       c++;
@@ -439,7 +440,7 @@ export class LegacyWallet extends AbstractWallet {
    */
   isAddressValid(address) {
     try {
-      bitcoin.address.toOutputScript(address);
+      bitcoin.address.toOutputScript(address, TESTNET);
       return true;
     } catch (e) {
       return false;
@@ -457,7 +458,7 @@ export class LegacyWallet extends AbstractWallet {
       const scriptPubKey2 = Buffer.from(scriptPubKey, 'hex');
       return bitcoin.payments.p2pkh({
         output: scriptPubKey2,
-        network: bitcoin.networks.bitcoin,
+        network: bitcoin.networks.testnet,
       }).address;
     } catch (_) {
       return false;
@@ -518,7 +519,7 @@ export class LegacyWallet extends AbstractWallet {
   signMessage(message, address, useSegwit = true) {
     const wif = this._getWIFbyAddress(address);
     if (wif === null) throw new Error('Invalid address');
-    const keyPair = bitcoin.ECPair.fromWIF(wif);
+    const keyPair = bitcoin.ECPair.fromWIF(wif, TESTNET);
     const privateKey = keyPair.privateKey;
     const options = this.segwitType && useSegwit ? { segwitType: this.segwitType } : undefined;
     const signature = bitcoinMessage.sign(message, privateKey, keyPair.compressed, options);
