@@ -20,6 +20,7 @@ import {
   uint8ArrayToString,
   compareUint8Arrays,
 } from '../../blue_modules/uint8array-extras';
+import { NETWORK } from '../../blue_modules/network';
 
 const ECPair = ECPairFactory(ecc);
 const bip32 = BIP32Factory(ecc);
@@ -75,8 +76,8 @@ export class MultisigHDWallet extends AbstractHDElectrumWallet {
   static FORMAT_P2SH_P2WSH_ALT = 'p2wsh-p2sh';
   static FORMAT_P2SH = 'p2sh';
 
-  static PATH_NATIVE_SEGWIT = "m/48'/0'/0'/2'";
-  static PATH_WRAPPED_SEGWIT = "m/48'/0'/0'/1'";
+  static PATH_NATIVE_SEGWIT = "m/48'/1'/0'/2'";
+  static PATH_WRAPPED_SEGWIT = "m/48'/1'/0'/1'";
   static PATH_LEGACY = "m/45'";
 
   private _m: number = 0; //  minimum required signatures so spend (m out of n)
@@ -183,7 +184,7 @@ export class MultisigHDWallet extends AbstractHDElectrumWallet {
     try {
       const tempWallet = new MultisigHDWallet();
       xpub = tempWallet._zpubToXpub(key);
-      bip32.fromBase58(xpub);
+      bip32.fromBase58(xpub, NETWORK);
       return true;
     } catch (_) {}
 
@@ -193,7 +194,7 @@ export class MultisigHDWallet extends AbstractHDElectrumWallet {
   static isXprvValid(xprv: string): boolean {
     try {
       xprv = MultisigHDWallet.convertMultisigXprvToRegularXprv(xprv);
-      bip32.fromBase58(xprv);
+      bip32.fromBase58(xprv, NETWORK);
       return true;
     } catch (_) {
       return false;
@@ -260,7 +261,7 @@ export class MultisigHDWallet extends AbstractHDElectrumWallet {
   }
 
   static convertXprvToXpub(xprv: string) {
-    const restored = bip32.fromBase58(MultisigHDWallet.convertMultisigXprvToRegularXprv(xprv));
+    const restored = bip32.fromBase58(MultisigHDWallet.convertMultisigXprvToRegularXprv(xprv), NETWORK);
     return restored.neutered().toBase58();
   }
 
@@ -307,7 +308,7 @@ export class MultisigHDWallet extends AbstractHDElectrumWallet {
 
       if (!this._nodes[nodeIndex][cosignerIndex]) {
         const xpub = this._getXpubFromCosignerIndex(cosignerIndex);
-        const hdNode = bip32.fromBase58(xpub);
+        const hdNode = bip32.fromBase58(xpub, NETWORK);
         _node = hdNode.derive(nodeIndex);
         this._nodes[nodeIndex][cosignerIndex] = _node;
       } else {
@@ -320,8 +321,10 @@ export class MultisigHDWallet extends AbstractHDElectrumWallet {
     if (this.isWrappedSegwit()) {
       const { address } = bitcoin.payments.p2sh({
         redeem: bitcoin.payments.p2wsh({
-          redeem: bitcoin.payments.p2ms({ m: this._m, pubkeys: MultisigHDWallet.sortBuffers(pubkeys) }),
+          redeem: bitcoin.payments.p2ms({ m: this._m, pubkeys: MultisigHDWallet.sortBuffers(pubkeys), network: NETWORK }),
+          network: NETWORK,
         }),
+        network: NETWORK,
       });
       if (!address) {
         throw new Error('Internal error: could not make p2sh address');
@@ -330,7 +333,8 @@ export class MultisigHDWallet extends AbstractHDElectrumWallet {
       return address;
     } else if (this.isNativeSegwit()) {
       const { address } = bitcoin.payments.p2wsh({
-        redeem: bitcoin.payments.p2ms({ m: this._m, pubkeys: MultisigHDWallet.sortBuffers(pubkeys) }),
+        redeem: bitcoin.payments.p2ms({ m: this._m, pubkeys: MultisigHDWallet.sortBuffers(pubkeys), network: NETWORK }),
+        network: NETWORK,
       });
       if (!address) {
         throw new Error('Internal error: could not make p2wsh address');
@@ -339,7 +343,8 @@ export class MultisigHDWallet extends AbstractHDElectrumWallet {
       return address;
     } else if (this.isLegacy()) {
       const { address } = bitcoin.payments.p2sh({
-        redeem: bitcoin.payments.p2ms({ m: this._m, pubkeys: MultisigHDWallet.sortBuffers(pubkeys) }),
+        redeem: bitcoin.payments.p2ms({ m: this._m, pubkeys: MultisigHDWallet.sortBuffers(pubkeys), network: NETWORK }),
+        network: NETWORK,
       });
       if (!address) {
         throw new Error('Internal error: could not make p2sh address');
@@ -369,7 +374,7 @@ export class MultisigHDWallet extends AbstractHDElectrumWallet {
       seed = bip39.mnemonicToSeedSync(mnemonic, passphrase);
     }
 
-    const root = bip32.fromSeed(seed);
+    const root = bip32.fromSeed(seed, NETWORK);
     const child = root.derivePath(path).neutered();
     return child.toBase58();
   }
@@ -754,7 +759,7 @@ export class MultisigHDWallet extends AbstractHDElectrumWallet {
       }
 
       const xpub = this._getXpubFromCosignerIndex(cosignerIndex);
-      const hdNode0 = bip32.fromBase58(xpub);
+      const hdNode0 = bip32.fromBase58(xpub, NETWORK);
       const splt = path.split('/');
       const internal = +splt[splt.length - 2];
       const index = +splt[splt.length - 1];
@@ -775,7 +780,8 @@ export class MultisigHDWallet extends AbstractHDElectrumWallet {
 
     if (this.isNativeSegwit()) {
       const p2wsh = bitcoin.payments.p2wsh({
-        redeem: bitcoin.payments.p2ms({ m: this._m, pubkeys: MultisigHDWallet.sortBuffers(pubkeys) }),
+        redeem: bitcoin.payments.p2ms({ m: this._m, pubkeys: MultisigHDWallet.sortBuffers(pubkeys), network: NETWORK }),
+        network: NETWORK,
       });
       if (!p2wsh.redeem || !p2wsh.output) {
         throw new Error('Could not create p2wsh output');
@@ -799,8 +805,10 @@ export class MultisigHDWallet extends AbstractHDElectrumWallet {
     } else if (this.isWrappedSegwit()) {
       const p2shP2wsh = bitcoin.payments.p2sh({
         redeem: bitcoin.payments.p2wsh({
-          redeem: bitcoin.payments.p2ms({ m: this._m, pubkeys: MultisigHDWallet.sortBuffers(pubkeys) }),
+          redeem: bitcoin.payments.p2ms({ m: this._m, pubkeys: MultisigHDWallet.sortBuffers(pubkeys), network: NETWORK }),
+          network: NETWORK,
         }),
+        network: NETWORK,
       });
       if (!p2shP2wsh?.redeem?.redeem?.output || !p2shP2wsh?.redeem?.output || !p2shP2wsh.output) {
         throw new Error('Could not create p2sh-p2wsh output');
@@ -826,7 +834,8 @@ export class MultisigHDWallet extends AbstractHDElectrumWallet {
       });
     } else if (this.isLegacy()) {
       const p2sh = bitcoin.payments.p2sh({
-        redeem: bitcoin.payments.p2ms({ m: this._m, pubkeys: MultisigHDWallet.sortBuffers(pubkeys) }),
+        redeem: bitcoin.payments.p2ms({ m: this._m, pubkeys: MultisigHDWallet.sortBuffers(pubkeys), network: NETWORK }),
+        network: NETWORK,
       });
       if (!p2sh?.redeem?.output) {
         throw new Error('Could not create p2sh output');
@@ -863,7 +872,7 @@ export class MultisigHDWallet extends AbstractHDElectrumWallet {
       }
 
       const xpub = this._getXpubFromCosignerIndex(cosignerIndex);
-      const hdNode0 = bip32.fromBase58(xpub);
+      const hdNode0 = bip32.fromBase58(xpub, NETWORK);
       const splt = path.split('/');
       const internal = +splt[splt.length - 2];
       const index = +splt[splt.length - 1];
@@ -879,7 +888,7 @@ export class MultisigHDWallet extends AbstractHDElectrumWallet {
     }
 
     if (this.isLegacy()) {
-      const p2sh = bitcoin.payments.p2ms({ m: this._m, pubkeys: MultisigHDWallet.sortBuffers(pubkeys) });
+      const p2sh = bitcoin.payments.p2ms({ m: this._m, pubkeys: MultisigHDWallet.sortBuffers(pubkeys), network: NETWORK });
       if (!p2sh.output) {
         throw new Error('Could not create redeemScript');
       }
@@ -892,8 +901,10 @@ export class MultisigHDWallet extends AbstractHDElectrumWallet {
     if (this.isWrappedSegwit()) {
       const p2shP2wsh = bitcoin.payments.p2sh({
         redeem: bitcoin.payments.p2wsh({
-          redeem: bitcoin.payments.p2ms({ m: this._m, pubkeys: MultisigHDWallet.sortBuffers(pubkeys) }),
+          redeem: bitcoin.payments.p2ms({ m: this._m, pubkeys: MultisigHDWallet.sortBuffers(pubkeys), network: NETWORK }),
+          network: NETWORK,
         }),
+        network: NETWORK,
       });
       const witnessScript = p2shP2wsh?.redeem?.redeem?.output;
       const redeemScript = p2shP2wsh?.redeem?.output;
@@ -983,7 +994,7 @@ export class MultisigHDWallet extends AbstractHDElectrumWallet {
     const { inputs, outputs, fee } = this.coinselect(utxos, targets, feeRate);
     sequence = sequence || AbstractHDElectrumWallet.defaultRBFSequence;
 
-    let psbt = new bitcoin.Psbt();
+    let psbt = new bitcoin.Psbt({ network: NETWORK });
 
     let c = 0;
     inputs.forEach(input => {
@@ -1032,7 +1043,7 @@ export class MultisigHDWallet extends AbstractHDElectrumWallet {
             seed = MultisigHDWallet.convertElectrumMnemonicToSeed(cosigner, passphrase);
           }
 
-          const hdRoot = bip32.fromSeed(seed);
+          const hdRoot = bip32.fromSeed(seed, NETWORK);
           psbt.signInputHD(cc, hdRoot);
           signaturesMade++;
         }
@@ -1171,13 +1182,13 @@ export class MultisigHDWallet extends AbstractHDElectrumWallet {
         let hdRoot;
         if (MultisigHDWallet.isXprvString(cosigner)) {
           const xprv = MultisigHDWallet.convertMultisigXprvToRegularXprv(cosigner);
-          hdRoot = bip32.fromBase58(xprv);
+          hdRoot = bip32.fromBase58(xprv, NETWORK);
         } else {
           const passphrase = this._cosignersPassphrases[cosignerIndex];
           const seed = cosigner.startsWith(ELECTRUM_SEED_PREFIX)
             ? MultisigHDWallet.convertElectrumMnemonicToSeed(cosigner, passphrase)
             : bip39.mnemonicToSeedSync(cosigner, passphrase);
-          hdRoot = bip32.fromSeed(seed);
+          hdRoot = bip32.fromSeed(seed, NETWORK);
         }
 
         try {

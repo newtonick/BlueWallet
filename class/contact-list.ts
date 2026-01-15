@@ -3,6 +3,7 @@ import BIP47Factory from '@spsina/bip47';
 import { SilentPayment } from 'silent-payments';
 
 import ecc from '../blue_modules/noble_ecc';
+import { BECH32_PREFIX, NETWORK } from '../blue_modules/network';
 import { concatUint8Arrays } from '../blue_modules/uint8array-extras';
 import * as bitcoin from 'bitcoinjs-lib';
 
@@ -26,9 +27,9 @@ export class ContactList {
 
   isAddressValid(address: string): boolean {
     try {
-      bitcoin.address.toOutputScript(address); // throws, no?
+      bitcoin.address.toOutputScript(address, NETWORK); // throws, no?
 
-      if (!address.toLowerCase().startsWith('bc1')) return true;
+      if (!address.toLowerCase().startsWith(BECH32_PREFIX)) return true;
       const decoded = bitcoin.address.fromBech32(address);
       if (decoded.version === 0) return true;
       if (decoded.version === 1 && decoded.data.length !== 32) return false;

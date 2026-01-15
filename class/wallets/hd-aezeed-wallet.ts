@@ -4,6 +4,7 @@ import * as bitcoin from 'bitcoinjs-lib';
 import b58 from 'bs58check';
 
 import ecc from '../../blue_modules/noble_ecc';
+import { NETWORK } from '../../blue_modules/network';
 import { concatUint8Arrays, hexToUint8Array, uint8ArrayToHex } from '../../blue_modules/uint8array-extras';
 import { AbstractHDElectrumWallet } from './abstract-hd-electrum-wallet';
 
@@ -23,7 +24,7 @@ export class HDAezeedWallet extends AbstractHDElectrumWallet {
   static readonly type = 'HDAezeedWallet';
   static readonly typeReadable = 'HD Aezeed';
   public readonly segwitType = 'p2wpkh';
-  static readonly derivationPath = "m/84'/0'/0'";
+  static readonly derivationPath = "m/84'/1'/0'";
   // @ts-ignore: override
   public readonly type = HDAezeedWallet.type;
   // @ts-ignore: override
@@ -113,6 +114,7 @@ export class HDAezeedWallet extends AbstractHDElectrumWallet {
 
     const address = bitcoin.payments.p2wpkh({
       pubkey: this._node1.derive(index).publicKey,
+      network: NETWORK,
     }).address;
     if (!address) {
       throw new Error('Internal error: no address in _getInternalAddressByIndex');
@@ -129,6 +131,7 @@ export class HDAezeedWallet extends AbstractHDElectrumWallet {
 
     const address = bitcoin.payments.p2wpkh({
       pubkey: this._node0.derive(index).publicKey,
+      network: NETWORK,
     }).address;
     if (!address) {
       throw new Error('Internal error: no address in _getExternalAddressByIndex');

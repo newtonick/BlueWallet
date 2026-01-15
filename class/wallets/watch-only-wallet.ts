@@ -1,5 +1,6 @@
 import BIP32Factory from 'bip32';
 import * as bitcoin from 'bitcoinjs-lib';
+import { NETWORK } from '../../blue_modules/network';
 
 import ecc from '../../blue_modules/noble_ecc';
 import { AbstractWallet } from './abstract-wallet';
@@ -58,10 +59,11 @@ export class WatchOnlyWallet extends LegacyWallet {
   }
 
   valid() {
-    if (this.secret.startsWith('xpub') || this.secret.startsWith('ypub') || this.secret.startsWith('zpub')) return this.isXpubValid();
+    if (this.secret.startsWith('xpub') || this.secret.startsWith('ypub') || this.secret.startsWith('zpub') ||
+        this.secret.startsWith('tpub') || this.secret.startsWith('upub') || this.secret.startsWith('vpub')) return this.isXpubValid();
 
     try {
-      bitcoin.address.toOutputScript(this.getAddress());
+      bitcoin.address.toOutputScript(this.getAddress(), NETWORK);
       return true;
     } catch (_) {
       return false;
@@ -96,10 +98,10 @@ export class WatchOnlyWallet extends LegacyWallet {
       hdWalletInstance = new HDSegwitP2SHWallet();
     }
     // Final fallback to xpub prefix (legacy behavior for bare xpub/ypub/zpub)
-    else if (this.secret.startsWith('xpub')) {
+    else if (this.secret.startsWith('xpub') || this.secret.startsWith('tpub')) {
       hdWalletInstance = new HDLegacyP2PKHWallet();
-    } else if (this.secret.startsWith('ypub')) hdWalletInstance = new HDSegwitP2SHWallet();
-    else if (this.secret.startsWith('zpub')) hdWalletInstance = new HDSegwitBech32Wallet();
+    } else if (this.secret.startsWith('ypub') || this.secret.startsWith('upub')) hdWalletInstance = new HDSegwitP2SHWallet();
+    else if (this.secret.startsWith('zpub') || this.secret.startsWith('vpub')) hdWalletInstance = new HDSegwitBech32Wallet();
     else return this;
     hdWalletInstance._xpub = this.secret;
 
@@ -143,7 +145,8 @@ export class WatchOnlyWallet extends LegacyWallet {
   }
 
   async fetchBalance() {
-    if (this.secret.startsWith('xpub') || this.secret.startsWith('ypub') || this.secret.startsWith('zpub')) {
+    if (this.secret.startsWith('xpub') || this.secret.startsWith('ypub') || this.secret.startsWith('zpub') ||
+        this.secret.startsWith('tpub') || this.secret.startsWith('upub') || this.secret.startsWith('vpub')) {
       if (!this._hdWalletInstance) this.init();
       if (!this._hdWalletInstance) throw new Error('Internal error: _hdWalletInstance is not initialized');
       return this._hdWalletInstance.fetchBalance();
@@ -154,7 +157,8 @@ export class WatchOnlyWallet extends LegacyWallet {
   }
 
   async fetchTransactions() {
-    if (this.secret.startsWith('xpub') || this.secret.startsWith('ypub') || this.secret.startsWith('zpub')) {
+    if (this.secret.startsWith('xpub') || this.secret.startsWith('ypub') || this.secret.startsWith('zpub') ||
+        this.secret.startsWith('tpub') || this.secret.startsWith('upub') || this.secret.startsWith('vpub')) {
       if (!this._hdWalletInstance) this.init();
       if (!this._hdWalletInstance) throw new Error('Internal error: _hdWalletInstance is not initialized');
       return this._hdWalletInstance.fetchTransactions();
@@ -252,7 +256,8 @@ export class WatchOnlyWallet extends LegacyWallet {
   }
 
   isHd() {
-    return this.secret.startsWith('xpub') || this.secret.startsWith('ypub') || this.secret.startsWith('zpub');
+    return this.secret.startsWith('xpub') || this.secret.startsWith('ypub') || this.secret.startsWith('zpub') ||
+           this.secret.startsWith('tpub') || this.secret.startsWith('upub') || this.secret.startsWith('vpub');
   }
 
   weOwnAddress(address: string) {
@@ -267,7 +272,8 @@ export class WatchOnlyWallet extends LegacyWallet {
   }
 
   allowMasterFingerprint() {
-    return this.getSecret().startsWith('zpub') || this.getSecret().startsWith('ypub') || this.getSecret().startsWith('xpub');
+    return this.getSecret().startsWith('zpub') || this.getSecret().startsWith('ypub') || this.getSecret().startsWith('xpub') ||
+           this.getSecret().startsWith('vpub') || this.getSecret().startsWith('upub') || this.getSecret().startsWith('tpub');
   }
 
   useWithHardwareWalletEnabled() {
@@ -290,15 +296,15 @@ export class WatchOnlyWallet extends LegacyWallet {
     let xpub;
 
     try {
-      if (this.secret.startsWith('zpub')) {
+      if (this.secret.startsWith('zpub') || this.secret.startsWith('vpub')) {
         xpub = this._zpubToXpub(this.secret);
-      } else if (this.secret.startsWith('ypub')) {
+      } else if (this.secret.startsWith('ypub') || this.secret.startsWith('upub')) {
         xpub = AbstractWallet._ypubToXpub(this.secret);
       } else {
         xpub = this.secret;
       }
 
-      const hdNode = bip32.fromBase58(xpub);
+      const hdNode = bip32.fromBase58(xpub, NETWORK);
       hdNode.derive(0);
       return true;
     } catch (_) {}

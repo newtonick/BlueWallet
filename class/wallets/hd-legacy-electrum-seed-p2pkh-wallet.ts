@@ -1,5 +1,6 @@
 import BIP32Factory from 'bip32';
 import * as bitcoin from 'bitcoinjs-lib';
+import { NETWORK } from '../../blue_modules/network';
 import * as mn from 'electrum-mnemonic';
 
 import ecc from '../../blue_modules/noble_ecc';
@@ -46,7 +47,7 @@ export class HDLegacyElectrumSeedP2PKHWallet extends HDLegacyP2PKHWallet {
     }
     const args: SeedOpts = { prefix: PREFIX };
     if (this.passphrase) args.passphrase = this.passphrase;
-    const root = bip32.fromSeed(mn.mnemonicToSeedSync(this.secret, args));
+    const root = bip32.fromSeed(mn.mnemonicToSeedSync(this.secret, args), NETWORK);
     this._xpub = root.neutered().toBase58();
     return this._xpub;
   }
@@ -55,9 +56,10 @@ export class HDLegacyElectrumSeedP2PKHWallet extends HDLegacyP2PKHWallet {
     index = index * 1; // cast to int
     if (this.internal_addresses_cache[index]) return this.internal_addresses_cache[index]; // cache hit
 
-    const node = bip32.fromBase58(this.getXpub());
+    const node = bip32.fromBase58(this.getXpub(), NETWORK);
     const address = bitcoin.payments.p2pkh({
       pubkey: node.derive(1).derive(index).publicKey,
+      network: NETWORK,
     }).address;
     if (!address) {
       throw new Error('Internal error: no address in _getInternalAddressByIndex');
@@ -70,9 +72,10 @@ export class HDLegacyElectrumSeedP2PKHWallet extends HDLegacyP2PKHWallet {
     index = index * 1; // cast to int
     if (this.external_addresses_cache[index]) return this.external_addresses_cache[index]; // cache hit
 
-    const node = bip32.fromBase58(this.getXpub());
+    const node = bip32.fromBase58(this.getXpub(), NETWORK);
     const address = bitcoin.payments.p2pkh({
       pubkey: node.derive(0).derive(index).publicKey,
+      network: NETWORK,
     }).address;
     if (!address) {
       throw new Error('Internal error: no address in _getExternalAddressByIndex');
@@ -85,7 +88,7 @@ export class HDLegacyElectrumSeedP2PKHWallet extends HDLegacyP2PKHWallet {
     if (!this.secret) return false;
     const args: SeedOpts = { prefix: PREFIX };
     if (this.passphrase) args.passphrase = this.passphrase;
-    const root = bip32.fromSeed(mn.mnemonicToSeedSync(this.secret, args));
+    const root = bip32.fromSeed(mn.mnemonicToSeedSync(this.secret, args), NETWORK);
     const path = `m/${internal ? 1 : 0}/${index}`;
     const child = root.derivePath(path);
 
@@ -97,13 +100,13 @@ export class HDLegacyElectrumSeedP2PKHWallet extends HDLegacyP2PKHWallet {
 
     if (node === 0 && !this._node0) {
       const xpub = this.getXpub();
-      const hdNode = bip32.fromBase58(xpub);
+      const hdNode = bip32.fromBase58(xpub, NETWORK);
       this._node0 = hdNode.derive(node);
     }
 
     if (node === 1 && !this._node1) {
       const xpub = this.getXpub();
-      const hdNode = bip32.fromBase58(xpub);
+      const hdNode = bip32.fromBase58(xpub, NETWORK);
       this._node1 = hdNode.derive(node);
     }
 

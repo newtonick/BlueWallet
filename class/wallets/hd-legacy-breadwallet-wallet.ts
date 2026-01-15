@@ -1,10 +1,12 @@
 import BIP32Factory, { BIP32Interface } from 'bip32';
 import * as bitcoinjs from 'bitcoinjs-lib';
+import { NETWORK } from '../../blue_modules/network';
 import { Psbt } from 'bitcoinjs-lib';
 import { CoinSelectReturnInput } from 'coinselect';
 
 import * as BlueElectrum from '../../blue_modules/BlueElectrum';
 import { ElectrumHistory } from '../../blue_modules/BlueElectrum';
+import { BECH32_PREFIX } from '../../blue_modules/network';
 import ecc from '../../blue_modules/noble_ecc';
 import { AbstractHDElectrumWallet } from './abstract-hd-electrum-wallet';
 import { HDLegacyP2PKHWallet } from './hd-legacy-p2pkh-wallet';
@@ -32,10 +34,10 @@ export class HDLegacyBreadwalletWallet extends HDLegacyP2PKHWallet {
   _calcNodeAddressByIndex(node: number, index: number, p2wpkh: boolean = false) {
     let _node: BIP32Interface | undefined;
     if (node === 0) {
-      _node = this._node0 || (this._node0 = bip32.fromBase58(this.getXpub()).derive(node));
+      _node = this._node0 || (this._node0 = bip32.fromBase58(this.getXpub(), NETWORK).derive(node));
     }
     if (node === 1) {
-      _node = this._node1 || (this._node1 = bip32.fromBase58(this.getXpub()).derive(node));
+      _node = this._node1 || (this._node1 = bip32.fromBase58(this.getXpub(), NETWORK).derive(node));
     }
 
     if (!_node) {
@@ -162,7 +164,7 @@ export class HDLegacyBreadwalletWallet extends HDLegacyP2PKHWallet {
     // hack to use
     // AbstractHDElectrumWallet._addPsbtInput for bech32 address
     // HDLegacyP2PKHWallet._addPsbtInput for legacy address
-    const ProxyClass = input?.address?.startsWith('bc1') ? AbstractHDElectrumWallet : HDLegacyP2PKHWallet;
+    const ProxyClass = input?.address?.toLowerCase().startsWith(BECH32_PREFIX) ? AbstractHDElectrumWallet : HDLegacyP2PKHWallet;
     const proxy = new ProxyClass();
     return proxy._addPsbtInput.apply(this, [psbt, input, sequence, masterFingerprintBuffer]);
   }
