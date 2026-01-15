@@ -1,6 +1,7 @@
 import * as bitcoin from 'bitcoinjs-lib';
 import { ECPairFactory } from 'ecpair';
 
+import { NETWORK } from '../blue_modules/network';
 import triggerHapticFeedback, { HapticFeedbackTypes } from '../blue_modules/hapticFeedback';
 import ecc from '../blue_modules/noble_ecc';
 import presentAlert from '../components/Alert';
@@ -33,9 +34,9 @@ export default class PayjoinTransaction {
       delete input.finalScriptWitness;
 
       assert(input.witnessUtxo, 'Internal error: input.witnessUtxo is not set');
-      const address = bitcoin.address.fromOutputScript(input.witnessUtxo.script);
+      const address = bitcoin.address.fromOutputScript(input.witnessUtxo.script, NETWORK);
       const wif = this._wallet._getWifForAddress(address);
-      const keyPair = ECPair.fromWIF(wif);
+      const keyPair = ECPair.fromWIF(wif, NETWORK);
 
       unfinalized.signInput(index, keyPair);
     }
@@ -77,10 +78,10 @@ export default class PayjoinTransaction {
 
     for (const [index, input] of payjoinPsbt.data.inputs.entries()) {
       assert(input.witnessUtxo, 'Internal error: input.witnessUtxo is not set');
-      const address = bitcoin.address.fromOutputScript(input.witnessUtxo.script);
+      const address = bitcoin.address.fromOutputScript(input.witnessUtxo.script, NETWORK);
       try {
         const wif = this._wallet._getWifForAddress(address);
-        const keyPair = ECPair.fromWIF(wif);
+        const keyPair = ECPair.fromWIF(wif, NETWORK);
         payjoinPsbt.signInput(index, keyPair).finalizeInput(index);
       } catch (e) {}
     }

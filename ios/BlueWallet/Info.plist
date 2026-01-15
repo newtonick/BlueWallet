@@ -211,6 +211,8 @@
 		<string>processing</string>
 		<string>remote-notification</string>
 	</array>
+	<key>UIDesignRequiresCompatibility</key>
+	<true/>
 	<key>UIFileSharingEnabled</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
@@ -240,8 +242,6 @@
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
-	<true/>
-	<key>UIDesignRequiresCompatibility</key>
 	<true/>
 	<key>UTExportedTypeDeclarations</key>
 	<array>

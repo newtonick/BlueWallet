@@ -43,18 +43,10 @@ const NetworkSettings: React.FC = () => {
       backgroundColor: platformColors.cardBackground,
       marginHorizontal: 0,
     },
-    lastItemWithNotifications: {
-      borderBottomLeftRadius: 0,
-      borderBottomRightRadius: 0,
-    },
   });
 
   const navigateToElectrumSettings = () => {
     navigation.navigate('ElectrumSettings');
-  };
-
-  const navigateToLightningSettings = () => {
-    navigation.navigate('LightningSettings');
   };
 
   const navigateToBlockExplorerSettings = () => {
@@ -98,21 +90,6 @@ const NetworkSettings: React.FC = () => {
             color: colors.successColor,
             backgroundColor: platformColors.greenIconBg,
           }}
-          containerStyle={styles.itemContainer}
-          onPress={navigateToElectrumSettings}
-          testID="ElectrumSettings"
-          chevron
-          bottomDivider={layout.showBorderBottom}
-        />
-
-        <PlatformListItem
-          title={loc.settings.lightning_settings}
-          leftIcon={{
-            type: 'font-awesome-5',
-            name: 'bolt',
-            color: colors.lnborderColor,
-            backgroundColor: platformColors.yellowIconBg,
-          }}
           containerStyle={[
             styles.itemContainer,
             !isNotificationsCapable
@@ -120,10 +97,10 @@ const NetworkSettings: React.FC = () => {
                   borderBottomLeftRadius: sizing.containerBorderRadius * 1.5,
                   borderBottomRightRadius: sizing.containerBorderRadius * 1.5,
                 }
-              : styles.lastItemWithNotifications,
+              : {},
           ]}
-          onPress={navigateToLightningSettings}
-          testID="LightningSettings"
+          onPress={navigateToElectrumSettings}
+          testID="ElectrumSettings"
           chevron
           bottomDivider={layout.showBorderBottom && isNotificationsCapable}
           isLast={!isNotificationsCapable}

@@ -13,7 +13,7 @@ export class HDSegwitBech32Wallet extends AbstractHDElectrumWallet {
   // @ts-ignore: override
   public readonly typeReadable = HDSegwitBech32Wallet.typeReadable;
   public readonly segwitType = 'p2wpkh';
-  static readonly derivationPath = "m/84'/0'/0'";
+  static readonly derivationPath = "m/84'/1'/0'";
 
   allowSend() {
     return true;

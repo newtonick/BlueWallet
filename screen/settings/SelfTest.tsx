@@ -10,6 +10,7 @@ import BlueCrypto from 'react-native-blue-crypto';
 import wif from 'wif';
 
 import * as BlueElectrum from '../../blue_modules/BlueElectrum';
+import { NETWORK } from '../../blue_modules/network';
 import * as encryption from '../../blue_modules/encryption';
 import * as fs from '../../blue_modules/fs';
 import ecc from '../../blue_modules/noble_ecc';
@@ -263,9 +264,9 @@ export default class SelfTest extends Component {
       const address = bitcoin.payments.p2sh({
         redeem: bitcoin.payments.p2wpkh({
           pubkey: child.publicKey,
-          network: bitcoin.networks.bitcoin,
+          network: NETWORK,
         }),
-        network: bitcoin.networks.bitcoin,
+        network: NETWORK,
       }).address;
 
       if (address !== '3GcKN7q7gZuZ8eHygAhHrvPa5zZbG5Q1rK') {

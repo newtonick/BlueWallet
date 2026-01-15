@@ -3,6 +3,7 @@ import { Psbt } from 'bitcoinjs-lib';
 import { CoinSelectReturnInput } from 'coinselect';
 
 import * as BlueElectrum from '../../blue_modules/BlueElectrum';
+import { NETWORK } from '../../blue_modules/network';
 import ecc from '../../blue_modules/noble_ecc';
 import { AbstractHDElectrumWallet } from './abstract-hd-electrum-wallet';
 import { hexToUint8Array } from '../../blue_modules/uint8array-extras';
@@ -21,7 +22,7 @@ export class HDLegacyP2PKHWallet extends AbstractHDElectrumWallet {
   public readonly type = HDLegacyP2PKHWallet.type;
   // @ts-ignore: override
   public readonly typeReadable = HDLegacyP2PKHWallet.typeReadable;
-  static readonly derivationPath = "m/44'/0'/0'";
+  static readonly derivationPath = "m/44'/1'/0'";
 
   allowSend() {
     return true;
@@ -52,7 +53,7 @@ export class HDLegacyP2PKHWallet extends AbstractHDElectrumWallet {
       return this._xpub; // cache hit
     }
     const seed = this._getSeed();
-    const root = bip32.fromSeed(seed);
+    const root = bip32.fromSeed(seed, NETWORK);
 
     const path = this.getDerivationPath();
     if (!path) {

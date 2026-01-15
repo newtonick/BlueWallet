@@ -1,6 +1,7 @@
 import BIP32Factory, { BIP32Interface } from 'bip32';
 import { AbstractHDElectrumWallet } from './abstract-hd-electrum-wallet';
 import ecc from '../../blue_modules/noble_ecc';
+import { NETWORK } from '../../blue_modules/network';
 import * as bitcoin from 'bitcoinjs-lib';
 import { Psbt } from 'bitcoinjs-lib';
 import { CoinSelectReturnInput } from 'coinselect';
@@ -18,14 +19,14 @@ export class HDTaprootWallet extends AbstractHDElectrumWallet {
   // @ts-ignore: override
   public readonly typeReadable = HDTaprootWallet.typeReadable;
   public readonly segwitType = 'p2tr';
-  static readonly derivationPath = "m/86'/0'/0'";
+  static readonly derivationPath = "m/86'/1'/0'";
 
   getXpub() {
     if (this._xpub) {
       return this._xpub; // cache hit
     }
     const seed = this._getSeed();
-    const root = bip32.fromSeed(seed);
+    const root = bip32.fromSeed(seed, NETWORK);
 
     const path = this.getDerivationPath();
     if (!path) {
@@ -49,6 +50,7 @@ export class HDTaprootWallet extends AbstractHDElectrumWallet {
 
     const { address } = bitcoin.payments.p2tr({
       internalPubkey: xOnlyPubkey,
+      network: NETWORK,
     });
 
     if (!address) {
@@ -64,20 +66,20 @@ export class HDTaprootWallet extends AbstractHDElectrumWallet {
     if (node === 0 && !this._node0) {
       let xpub = this.getXpub();
       if (xpub.startsWith('zpub')) {
-        // bip32.fromBase58() wont work with zpub prefix, need to swap it for the traditional one
+        // bip32.fromBase58(, NETWORK) wont work with zpub prefix, need to swap it for the traditional one
         xpub = this._zpubToXpub(xpub);
       }
-      const hdNode = bip32.fromBase58(xpub);
+      const hdNode = bip32.fromBase58(xpub, NETWORK);
       this._node0 = hdNode.derive(node);
     }
 
     if (node === 1 && !this._node1) {
       let xpub = this.getXpub();
       if (xpub.startsWith('zpub')) {
-        // bip32.fromBase58() wont work with zpub prefix, need to swap it for the traditional one
+        // bip32.fromBase58(, NETWORK) wont work with zpub prefix, need to swap it for the traditional one
         xpub = this._zpubToXpub(xpub);
       }
-      const hdNode = bip32.fromBase58(xpub);
+      const hdNode = bip32.fromBase58(xpub, NETWORK);
       this._node1 = hdNode.derive(node);
     }
 
@@ -104,6 +106,7 @@ export class HDTaprootWallet extends AbstractHDElectrumWallet {
 
     const p2tr = bitcoin.payments.p2tr({
       internalPubkey: pubkey,
+      network: NETWORK,
     });
     if (!p2tr.output) throw new Error('Could not build p2tr.output');
 

@@ -14,8 +14,6 @@ import WalletExport from '../screen/wallets/WalletExport';
 const DrawerRoot = lazy(() => import('./DrawerRoot'));
 const AddWalletStack = lazy(() => import('./AddWalletStack'));
 const SendDetailsStack = lazy(() => import('./SendDetailsStack'));
-const LNDCreateInvoiceRoot = lazy(() => import('./LNDCreateInvoiceStack'));
-const ScanLNDInvoiceRoot = lazy(() => import('./ScanLNDInvoiceStack'));
 const AztecoRedeemStackRoot = lazy(() => import('./AztecoRedeemStack'));
 const ExportMultisigCoordinationSetupStack = lazy(() => import('./ExportMultisigCoordinationSetupStack'));
 const SignVerifyStackRoot = lazy(() => import('./SignVerifyStack'));
@@ -58,18 +56,6 @@ const LazyAddWalletStack = () => (
 const LazySendDetailsStack = () => (
   <Suspense fallback={<LazyLoadingIndicator />}>
     <SendDetailsStack />
-  </Suspense>
-);
-
-const LazyLNDCreateInvoiceRoot = () => (
-  <Suspense fallback={<LazyLoadingIndicator />}>
-    <LNDCreateInvoiceRoot />
-  </Suspense>
-);
-
-const LazyScanLNDInvoiceRoot = () => (
-  <Suspense fallback={<LazyLoadingIndicator />}>
-    <ScanLNDInvoiceRoot />
   </Suspense>
 );
 
@@ -118,8 +104,6 @@ const MainRoot = () => {
           {/* Modal stacks */}
           <DetailViewStack.Screen name="AddWalletRoot" component={LazyAddWalletStack} options={NavigationDefaultOptions} />
           <DetailViewStack.Screen name="SendDetailsRoot" component={LazySendDetailsStack} options={NavigationFormNoSwipeDefaultOptions} />
-          <DetailViewStack.Screen name="LNDCreateInvoiceRoot" component={LazyLNDCreateInvoiceRoot} options={NavigationDefaultOptions} />
-          <DetailViewStack.Screen name="ScanLNDInvoiceRoot" component={LazyScanLNDInvoiceRoot} options={NavigationDefaultOptions} />
           <DetailViewStack.Screen name="AztecoRedeemRoot" component={LazyAztecoRedeemStackRoot} options={NavigationDefaultOptions} />
 
           <DetailViewStack.Screen

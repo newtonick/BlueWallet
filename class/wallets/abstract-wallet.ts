@@ -3,6 +3,7 @@ import { sha256 } from '@noble/hashes/sha256';
 import wif from 'wif';
 
 import { BitcoinUnit, Chain } from '../../models/bitcoinUnits';
+import { XPUB_VERSION, ZPUB_VERSION, YPUB_VERSION } from '../../blue_modules/network';
 import { CreateTransactionResult, CreateTransactionUtxo, Transaction, Utxo } from './types';
 import { hexToUint8Array, concatUint8Arrays, uint8ArrayToHex } from '../../blue_modules/uint8array-extras';
 
@@ -336,12 +337,12 @@ export class AbstractWallet {
     } catch (_) {}
 
     if (!this._derivationPath) {
-      if (this.secret.startsWith('xpub')) {
-        this._derivationPath = "m/44'/0'/0'"; // Assume default BIP44 path for legacy wallets
-      } else if (this.secret.startsWith('ypub')) {
-        this._derivationPath = "m/49'/0'/0'"; // Assume default BIP49 path for segwit wrapped wallets
-      } else if (this.secret.startsWith('zpub')) {
-        this._derivationPath = "m/84'/0'/0'"; // Assume default BIP84 for native segwit wallets
+      if (this.secret.startsWith('xpub') || this.secret.startsWith('tpub')) {
+        this._derivationPath = "m/44'/1'/0'"; // Assume default BIP44 path for legacy wallets (testnet)
+      } else if (this.secret.startsWith('ypub') || this.secret.startsWith('upub')) {
+        this._derivationPath = "m/49'/1'/0'"; // Assume default BIP49 path for segwit wrapped wallets (testnet)
+      } else if (this.secret.startsWith('zpub') || this.secret.startsWith('vpub')) {
+        this._derivationPath = "m/84'/1'/0'"; // Assume default BIP84 for native segwit wallets (testnet)
       }
     }
 
@@ -442,7 +443,7 @@ export class AbstractWallet {
   _zpubToXpub(zpub: string): string {
     let data = b58.decode(zpub);
     data = data.slice(4);
-    const concatenated = concatUint8Arrays([hexToUint8Array('0488b21e'), data]);
+    const concatenated = concatUint8Arrays([hexToUint8Array(XPUB_VERSION), data]);
 
     return b58.encode(concatenated);
   }
@@ -454,9 +455,11 @@ export class AbstractWallet {
    */
   static _ypubToXpub(ypub: string): string {
     let data = b58.decode(ypub);
-    if (data.readUInt32BE() !== 0x049d7cb2) throw new Error('Not a valid ypub extended key!');
+    // Check for mainnet ypub (049d7cb2) or testnet upub (044a5262)
+    const version = data.readUInt32BE();
+    if (version !== 0x049d7cb2 && version !== 0x044a5262) throw new Error('Not a valid ypub/upub extended key!');
     data = data.slice(4);
-    const concatenated = concatUint8Arrays([hexToUint8Array('0488b21e'), data]);
+    const concatenated = concatUint8Arrays([hexToUint8Array(XPUB_VERSION), data]);
 
     return b58.encode(concatenated);
   }
@@ -464,7 +467,7 @@ export class AbstractWallet {
   _xpubToZpub(xpub: string): string {
     let data = b58.decode(xpub);
     data = data.slice(4);
-    const concatenated = concatUint8Arrays([hexToUint8Array('04b24746'), data]);
+    const concatenated = concatUint8Arrays([hexToUint8Array(ZPUB_VERSION), data]);
 
     return b58.encode(concatenated);
   }
@@ -472,7 +475,7 @@ export class AbstractWallet {
   _xpubToYpub(xpub: string): string {
     let data = b58.decode(xpub);
     data = data.slice(4);
-    const concatenated = concatUint8Arrays([hexToUint8Array('049d7cb2'), data]);
+    const concatenated = concatUint8Arrays([hexToUint8Array(YPUB_VERSION), data]);
 
     return b58.encode(concatenated);
   }

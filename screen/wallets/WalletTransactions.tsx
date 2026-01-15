@@ -19,12 +19,12 @@ import * as BlueElectrum from '../../blue_modules/BlueElectrum';
 import { isDesktop } from '../../blue_modules/environment';
 import * as fs from '../../blue_modules/fs';
 import triggerHapticFeedback, { HapticFeedbackTypes } from '../../blue_modules/hapticFeedback';
-import { LightningArkWallet, LightningCustodianWallet, MultisigHDWallet, WatchOnlyWallet } from '../../class';
+import { MultisigHDWallet, WatchOnlyWallet } from '../../class';
 import presentAlert, { AlertType } from '../../components/Alert';
 import { FButton, FContainer } from '../../components/FloatButtons';
 import { useTheme } from '../../components/themes';
 import { TransactionListItem } from '../../components/TransactionListItem';
-import TransactionsNavigationHeader, { actionKeys } from '../../components/TransactionsNavigationHeader';
+import TransactionsNavigationHeader from '../../components/TransactionsNavigationHeader';
 import { unlockWithBiometrics, useBiometrics } from '../../hooks/useBiometrics';
 import { useExtendedNavigation } from '../../hooks/useExtendedNavigation';
 import loc, { formatBalance } from '../../loc';
@@ -36,9 +36,6 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { DetailViewStackParamList } from '../../navigation/DetailViewStackParamList';
 import { Transaction, TWallet } from '../../class/wallets/types';
 import getWalletTransactionsOptions, { WalletTransactionsRouteProps } from '../../navigation/helpers/getWalletTransactionsOptions';
-import { presentWalletExportReminder } from '../../helpers/presentWalletExportReminder';
-import selectWallet from '../../helpers/select-wallet';
-import assert from 'assert';
 import useMenuElements from '../../hooks/useMenuElements';
 import { useSettings } from '../../hooks/context/useSettings';
 import useWalletSubscribe from '../../hooks/useWalletSubscribe';
@@ -117,15 +114,11 @@ const WalletTransactions: React.FC<WalletTransactionsProps> = ({ route }: { rout
           walletID,
           uri: ret?.data ? ret.data : ret,
         };
-        if (wallet.chain === Chain.ONCHAIN) {
-          navigate('SendDetailsRoot', { screen: 'SendDetails', params: parameters });
-        } else {
-          navigate('ScanLNDInvoiceRoot', { screen: 'ScanLNDInvoice', params: parameters });
-        }
+        navigate('SendDetailsRoot', { screen: 'SendDetails', params: parameters });
         setIsLoading(false);
       }
     },
-    [isLoading, walletID, wallet.chain, navigate],
+    [isLoading, walletID, navigate],
   );
 
   useEffect(() => {
@@ -222,7 +215,6 @@ const WalletTransactions: React.FC<WalletTransactionsProps> = ({ route }: { rout
     }
   }, [wallet, isElectrumDisabled, isLoading, refreshTransactions, lastFetchTimestamp]);
 
-  const isLightning = useCallback((): boolean => wallet.chain === Chain.OFFCHAIN || false, [wallet]);
   const renderListFooterComponent = () => {
     // if not all txs rendered - display indicator
     return wallet.getTransactions().length > limit ? (
@@ -241,60 +233,12 @@ const WalletTransactions: React.FC<WalletTransactionsProps> = ({ route }: { rout
     });
   };
 
-  const onWalletSelect = useCallback(
-    async (selectedWallet: TWallet) => {
-      assert(
-        wallet.type === LightningCustodianWallet.type || wallet.type === LightningArkWallet.type,
-        `internal error, wallet is not ${LightningCustodianWallet.type} or ${LightningArkWallet.type}`,
-      );
-
-      // getting refill address, either cached or from the server:
-      let toAddress;
-      if (wallet.refill_addressess.length > 0) {
-        toAddress = wallet.refill_addressess[0];
-      } else {
-        try {
-          await wallet.fetchBtcAddress();
-          toAddress = wallet.refill_addressess[0];
-        } catch (Err) {
-          return presentAlert({ message: (Err as Error).message, type: AlertType.Toast });
-        }
-      }
-
-      // navigating to pay screen where user can pay to refill address:
-      navigate('SendDetailsRoot', {
-        screen: 'SendDetails',
-        params: {
-          transactionMemo: loc.lnd.refill_lnd_balance,
-          address: toAddress,
-          walletID: selectedWallet.getID(),
-        },
-      });
-    },
-    [navigate, wallet],
-  );
-
   const navigateToViewEditCosigners = useCallback(() => {
     navigate('ViewEditMultisigCosigners', {
       walletID,
     });
   }, [navigate, walletID]);
 
-  const onManageFundsPressed = useCallback(
-    (id?: string) => {
-      if (id === actionKeys.Refill) {
-        const availableWallets = wallets.filter(item => item.chain === Chain.ONCHAIN && item.allowSend());
-        if (availableWallets.length === 0) {
-          presentAlert({ message: loc.lnd.refill_create });
-        } else {
-          selectWallet(navigation, name, Chain.ONCHAIN).then(onWalletSelect);
-        }
-      } else if (id === actionKeys.RefillWithExternalWallet) {
-        navigate('ReceiveDetails', { walletID });
-      }
-    },
-    [name, navigate, navigation, onWalletSelect, walletID, wallets],
-  );
 
   const getItemLayout = (_: any, index: number) => ({
     length: 64,
@@ -331,10 +275,6 @@ const WalletTransactions: React.FC<WalletTransactionsProps> = ({ route }: { rout
   };
 
   const sendButtonPress = () => {
-    if (wallet.chain === Chain.OFFCHAIN) {
-      return navigate('ScanLNDInvoiceRoot', { screen: 'ScanLNDInvoice', params: { walletID } });
-    }
-
     if (wallet.type === WatchOnlyWallet.type && wallet.isHd() && !wallet.useWithHardwareWalletEnabled()) {
       return Alert.alert(
         loc.wallets.details_title,
@@ -490,27 +430,9 @@ const WalletTransactions: React.FC<WalletTransactionsProps> = ({ route }: { rout
             wallet.hideBalance = isShouldBeVisible;
             await saveToDisk();
           }}
-          onManageFundsPressed={id => {
+          onManageFundsPressed={() => {
             if (wallet.type === MultisigHDWallet.type) {
               navigateToViewEditCosigners();
-            } else if (wallet.type === LightningCustodianWallet.type || wallet.type === LightningArkWallet.type) {
-              if (wallet.getUserHasSavedExport()) {
-                if (!id) return;
-                onManageFundsPressed(id);
-              } else {
-                presentWalletExportReminder()
-                  .then(async () => {
-                    if (!id) return;
-                    wallet.setUserHasSavedExport(true);
-                    await saveToDisk();
-                    onManageFundsPressed(id);
-                  })
-                  .catch(() => {
-                    navigate('WalletExport', {
-                      walletID,
-                    });
-                  });
-              }
             }
           }}
         />
@@ -542,8 +464,6 @@ const WalletTransactions: React.FC<WalletTransactionsProps> = ({ route }: { rout
       saveToDisk,
       isBiometricUseCapableAndEnabled,
       navigateToViewEditCosigners,
-      onManageFundsPressed,
-      navigate,
       walletID,
     ],
   );
@@ -580,9 +500,8 @@ const WalletTransactions: React.FC<WalletTransactionsProps> = ({ route }: { rout
         ListEmptyComponent={
           <ScrollView style={[styles.emptyTxsContainer, stylesHook.backgroundContainer]} contentContainerStyle={styles.scrollViewContent}>
             <Text numberOfLines={0} style={styles.emptyTxs} testID="TransactionsListEmpty">
-              {(isLightning() && loc.wallets.list_empty_txs1_lightning) || loc.wallets.list_empty_txs1}
+              {loc.wallets.list_empty_txs1}
             </Text>
-            {isLightning() && <Text style={styles.emptyTxsLightning}>{loc.wallets.list_empty_txs2_lightning}</Text>}
           </ScrollView>
         }
         refreshControl={
@@ -598,11 +517,7 @@ const WalletTransactions: React.FC<WalletTransactionsProps> = ({ route }: { rout
             testID="ReceiveButton"
             text={loc.receive.header}
             onPress={() => {
-              if (wallet.chain === Chain.OFFCHAIN) {
-                navigate('LNDCreateInvoiceRoot', { screen: 'LNDCreateInvoice', params: { walletID } });
-              } else {
-                navigate('ReceiveDetails', { walletID });
-              }
+              navigate('ReceiveDetails', { walletID });
             }}
             icon={
               <View style={styles.iconContainer}>
@@ -664,7 +579,6 @@ const styles = StyleSheet.create({
   },
   emptyTxsContainer: { height: '10%', minHeight: '10%', flex: 1 },
   emptyTxs: { fontSize: 18, color: '#9aa0aa', textAlign: 'center', marginVertical: 16 },
-  emptyTxsLightning: { fontSize: 18, color: '#9aa0aa', textAlign: 'center', fontWeight: '600' },
   iconContainer: {
     justifyContent: 'center',
     alignItems: 'center',
