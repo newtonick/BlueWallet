@@ -206,11 +206,7 @@
 		<string>Octicons.ttf</string>
 	</array>
 	<key>UIBackgroundModes</key>
-	<array>
-		<string>fetch</string>
-		<string>processing</string>
-		<string>remote-notification</string>
-	</array>
+	<array/>
 	<key>UIDesignRequiresCompatibility</key>
 	<true/>
 	<key>UIFileSharingEnabled</key>
@@ -336,8 +332,6 @@
 			</dict>
 		</dict>
 	</array>
-	<key>WKCompanionAppBundleIdentifier</key>
-	<string>io.bluewallet.bluewallet</string>
 	<key>bugsnag</key>
 	<dict>
 		<key>apiKey</key>

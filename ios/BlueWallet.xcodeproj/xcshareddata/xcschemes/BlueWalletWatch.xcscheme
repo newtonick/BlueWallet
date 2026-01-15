@@ -95,6 +95,15 @@
             ReferencedContainer = "container:BlueWallet.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <MacroExpansion>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "B40D4E2F225841EC00428FCC"
+            BuildableName = "BlueWalletWatch.app"
+            BlueprintName = "BlueWalletWatch"
+            ReferencedContainer = "container:BlueWallet.xcodeproj">
+         </BuildableReference>
+      </MacroExpansion>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">
