@@ -11,10 +11,6 @@ const NetworkSettings: React.FC = () => {
     navigation.navigate('ElectrumSettings');
   };
 
-  const navigateToLightningSettings = () => {
-    navigation.navigate('LightningSettings');
-  };
-
   const navigateToBlockExplorerSettings = () => {
     navigation.navigate('SettingsBlockExplorer');
   };
@@ -40,15 +36,6 @@ const NetworkSettings: React.FC = () => {
           iconName="electrum"
           onPress={navigateToElectrumSettings}
           testID="ElectrumSettings"
-          chevron
-          position="middle"
-        />
-
-        <SettingsListItem
-          title={loc.settings.lightning_settings}
-          iconName="lightning"
-          onPress={navigateToLightningSettings}
-          testID="LightningSettings"
           chevron
           position={isNotificationsCapable ? 'middle' : 'last'}
         />
